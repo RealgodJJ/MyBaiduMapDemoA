@@ -24,7 +24,7 @@ android {
             keyPassword 'android'
         }
     }
-    
+
     buildTypes {
         release {
             minifyEnabled true
