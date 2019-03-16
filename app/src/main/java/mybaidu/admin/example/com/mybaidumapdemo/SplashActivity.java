@@ -27,6 +27,7 @@ public class SplashActivity extends AppCompatActivity {
         setContentView(R.layout.activity_splash);
 
         permissionUtils = new PermissionUtils(this);
+        //TODO:用户设置禁止不再提示时，应提醒用户手动设置
         permissionUtils.request(needRequestPermissions, 100, new PermissionUtils.CallBack() {
             @Override
             public void grandAll() {
