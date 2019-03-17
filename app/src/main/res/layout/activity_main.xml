@@ -11,4 +11,12 @@
         android:layout_height="fill_parent"
         android:clickable="true" />
 
+    <mybaidu.admin.example.com.mybaidumapdemo.AddressView
+        android:id="@+id/av_info"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom">
+
+    </mybaidu.admin.example.com.mybaidumapdemo.AddressView>
+
 </FrameLayout>

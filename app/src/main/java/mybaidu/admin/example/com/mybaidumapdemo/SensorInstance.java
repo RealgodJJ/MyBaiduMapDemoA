@@ -45,13 +45,13 @@ public class SensorInstance implements SensorEventListener {
 
     }
 
-    private onOrientationChangedListener listener;
+    private OnOrientationChangedListener listener;
 
-    void setOnOrientationChangedListener(onOrientationChangedListener listener) {
+    void setOnOrientationChangedListener(OnOrientationChangedListener listener) {
         this.listener = listener;
     }
 
-    public interface onOrientationChangedListener {
+    public interface OnOrientationChangedListener {
         void onOrientation(float x);
     }
 }

@@ -1,31 +1,39 @@
 package mybaidu.admin.example.com.mybaidumapdemo;
 
-import android.graphics.Point;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.View;
+import android.widget.Toast;
 
 import com.baidu.location.BDLocation;
 import com.baidu.mapapi.map.BaiduMap;
 import com.baidu.mapapi.map.BitmapDescriptor;
 import com.baidu.mapapi.map.BitmapDescriptorFactory;
+import com.baidu.mapapi.map.MapPoi;
 import com.baidu.mapapi.map.MapStatusUpdateFactory;
 import com.baidu.mapapi.map.MapView;
+import com.baidu.mapapi.map.Marker;
 import com.baidu.mapapi.map.MarkerOptions;
 import com.baidu.mapapi.map.MyLocationConfiguration;
 import com.baidu.mapapi.map.MyLocationData;
 import com.baidu.mapapi.map.OverlayOptions;
 import com.baidu.mapapi.model.LatLng;
 
+import java.util.List;
+
 public class MainActivity extends AppCompatActivity {
+    private AddressView avInfo;
+    private MapView mvBaidu;
+    private BaiduMap baiduMap;
     private static final int ITEM_ID_NORMAL_MAP = 101;
     private static final int ITEM_ID_SAFELLITE_MAP = 102;
     private static final int ITEM_LOCATION = 103;
+    private static final int ITEM_SHOW_HOTEL = 104;
     private static final String TAG = "RealgodJJ";
-    private MapView mvBaidu;
-    private BaiduMap baiduMap;
+    public static final String ADDRESS_INFO = "addressInfo";
     private LocationInstance locationInstance;
     private BDLocation lastBdLocation;
     private SensorInstance sensorInstance;
@@ -37,12 +45,40 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
 
         mvBaidu = findViewById(R.id.mv_baidu);
+        avInfo = findViewById(R.id.av_info);
         baiduMap = mvBaidu.getMap();
         //直接缩放至缩放级别16
         baiduMap.setMapStatus(MapStatusUpdateFactory.zoomTo(16f));
         //开启定位图层
         baiduMap.setMyLocationEnabled(true);
         init();
+        initEvent();
+    }
+
+    private void initEvent() {
+        baiduMap.setOnMapClickListener(new BaiduMap.OnMapClickListener() {
+            @Override
+            public void onMapClick(LatLng latLng) {
+                avInfo.setVisibility(View.GONE);
+            }
+
+            @Override
+            public boolean onMapPoiClick(MapPoi mapPoi) {
+                return false;
+            }
+        });
+
+        baiduMap.setOnMarkerClickListener(new BaiduMap.OnMarkerClickListener() {
+            @Override
+            public boolean onMarkerClick(Marker marker) {
+                Bundle extraInfo = marker.getExtraInfo();
+                AddressInfo addressInfo = (AddressInfo) extraInfo.getSerializable(ADDRESS_INFO);
+
+                //展示图文信息
+                avInfo.setAddressInfo(addressInfo);
+                return false;
+            }
+        });
     }
 
     private void init() {
@@ -52,7 +88,7 @@ public class MainActivity extends AppCompatActivity {
 
     private void initSensorDetect() {
         sensorInstance = new SensorInstance(getApplicationContext());
-        sensorInstance.setOnOrientationChangedListener(new SensorInstance.onOrientationChangedListener() {
+        sensorInstance.setOnOrientationChangedListener(new SensorInstance.OnOrientationChangedListener() {
             @Override
             public void onOrientation(float x) {
                 //设置定位图标
@@ -134,6 +170,7 @@ public class MainActivity extends AppCompatActivity {
         menu.add(Menu.NONE, ITEM_ID_NORMAL_MAP, 0, "切换为普通地图");
         menu.add(Menu.NONE, ITEM_ID_SAFELLITE_MAP, 0, "切换为卫星地图");
         menu.add(Menu.NONE, ITEM_LOCATION, 0, "定位当前位置");
+        menu.add(Menu.NONE, ITEM_SHOW_HOTEL, 0, "定位附近宾馆");
         return super.onCreateOptionsMenu(menu);
     }
 
@@ -161,6 +198,31 @@ public class MainActivity extends AppCompatActivity {
 //                baiduMap.addOverlay(option);
                 //创建一个新坐标点
                 baiduMap.animateMapStatus(MapStatusUpdateFactory.newLatLng(point));
+                break;
+
+            case ITEM_SHOW_HOTEL:
+                avInfo.setVisibility(View.GONE);
+                //定义Maker坐标点
+                List<AddressInfo> addressInfos = AddressInfoLab.generateDatas();
+                for (AddressInfo addressInfo : addressInfos) {
+                    LatLng hotel = new LatLng(addressInfo.getLatitude(), addressInfo.getLongitude());
+                    //构建Marker图标
+                    BitmapDescriptor hotelBitmap = BitmapDescriptorFactory.fromResource(R.drawable.hotel);
+
+                    Bundle bundle = new Bundle();
+                    bundle.putSerializable(ADDRESS_INFO, addressInfo);
+                    //构建MarkerOption，用于在地图上添加Marker
+                    OverlayOptions hotelOption = new MarkerOptions().position(hotel)
+                            .extraInfo(bundle).icon(hotelBitmap);
+                    //在地图上添加Marker，并显示
+                    baiduMap.addOverlay(hotelOption);
+                }
+                //自动移动到第一个宾馆的位置
+                if (addressInfos.isEmpty()) {
+                    Toast.makeText(this, "附近未找到宾馆！", Toast.LENGTH_SHORT).show();
+                }
+                LatLng hotel = new LatLng(addressInfos.get(0).getLatitude(), addressInfos.get(0).getLongitude());
+                baiduMap.animateMapStatus(MapStatusUpdateFactory.newLatLng(hotel));
                 break;
         }
         return super.onOptionsItemSelected(item);
