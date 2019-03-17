@@ -52,7 +52,6 @@ public class MainActivity extends AppCompatActivity {
         //开启定位图层
         baiduMap.setMyLocationEnabled(true);
         init();
-        initEvent();
     }
 
     private void initEvent() {
@@ -84,6 +83,7 @@ public class MainActivity extends AppCompatActivity {
     private void init() {
         initLocationDetect();
         initSensorDetect();
+        initEvent();
     }
 
     private void initSensorDetect() {

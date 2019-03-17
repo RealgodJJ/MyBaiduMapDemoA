@@ -59,6 +59,7 @@ public class PermissionUtils {
         activity.requestPermissions(requestPermissions.toArray(new String[]{}), requestCode);
     }
 
+    //申请权限的结果
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
         for (Integer key : requestBack.keySet()) {
             if (key == requestCode) {
